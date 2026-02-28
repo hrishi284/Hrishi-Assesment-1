@@ -1,6 +1,9 @@
 import logo from './logo.png';
 import './App.css';
 import { useState } from 'react';
+import { commissionRequest } from './models/commissionRequest';
+import { commissionResponse } from './models/commissionResponse';
+import { calculateCommission } from './services/commissionService';
 
 function App() {
   const [formData, setFormData] = useState({
@@ -8,45 +11,43 @@ function App() {
     foreignSalesCount: '',
     averageSaleAmount: ''
   });
-  
   const [results, setResults] = useState({
     avalphaTechnologiesCommission: 0,
     competitorCommission: 0
   });
 
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // TODO: Replace with actual API call to backend
-    setTimeout(() => {
-      // Mock calculation for now
-      const localCommission = parseFloat(formData.localSalesCount) * parseFloat(formData.averageSaleAmount) * 0.20;
-      const foreignCommission = parseFloat(formData.foreignSalesCount) * parseFloat(formData.averageSaleAmount) * 0.35;
-      const avalphaTechnologiesTotal = localCommission + foreignCommission;
-      
-      const competitorLocal = parseFloat(formData.localSalesCount) * parseFloat(formData.averageSaleAmount) * 0.02;
-      const competitorForeign = parseFloat(formData.foreignSalesCount) * parseFloat(formData.averageSaleAmount) * 0.0755;
-      const competitorTotal = competitorLocal + competitorForeign;
-      
+    setError("");
+
+    try {
+      const requestDto = commissionRequest(formData);
+      const apiResponse = await calculateCommission(requestDto);
+      var mappedResults = commissionResponse(apiResponse);
+
+      setResults(mappedResults);
+    } catch (err) {
       setResults({
-        avalphaTechnologiesCommission: avalphaTechnologiesTotal.toFixed(2),
-        competitorCommission: competitorTotal.toFixed(2)
-      });
+          avalphaTechnologiesCommission: 0,
+          competitorCommission: 0
+        });
+      alert(err.message);
+      
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
+  
   return (
     <div className="App">
       <header className="App-header">
