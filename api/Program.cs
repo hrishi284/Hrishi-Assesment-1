@@ -1,4 +1,7 @@
 
+using AvalphaTechnologies.CommissionCalculator.Services.Interfaces;
+using AvalphaTechnologies.CommissionCalculator.Services.Services;
+
 namespace AvalphaTechnologies.CommissionCalculator
 {
     public class Program
@@ -13,8 +16,20 @@ namespace AvalphaTechnologies.CommissionCalculator
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+            builder.Services.AddScoped<ICommissionService, CommissionService>();
             var app = builder.Build();
+
+            app.UseCors("AllowReactApp");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -23,7 +38,6 @@ namespace AvalphaTechnologies.CommissionCalculator
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
