@@ -1,85 +1,154 @@
-# 🧮 Commission Calculator — Technical Assessment
+# 🧮Commission Calculator — Implementation Notes
 
-> Finish and ship a production-quality Commission Calculator for **Avalpha Technologies**.  
-> The API and React app are scaffolded; the controller exists but the logic & wiring are incomplete **by design**.
-
----
-
-## 🚀 What you’ll build
-
-- Connect **frontend (React)** ↔ **backend (C#/.NET)**  
-- Implement commission calculations in the C# controller  
-- Deliver clean, production-ready code (tests, structure, readability)
-
-⏱ **Timebox:** up to **4 hours max**. Be pragmatic. Prioritize correctness, clarity, and the essentials.
+> This document describes how to run, test, and the key design decisions made during implementation..
 
 ---
 
-## 🔀 Before you start (Fork + Setup)
+## 🚀 How to Run the Application
+### ▶ Backend (.NET API)
+1.Navigate to the API project folder: 
 
-1. **Fork** this repository into your own GitHub account.  
-2. **Clone** your fork locally.  
-3. Work in a feature branch, e.g. `feat/commission-impl`.  
-4. When done, push to your fork and open a **Pull Request** back to your fork’s `main`.  
-   - Add a short **README-notes.md** describing decisions, trade-offs, and anything unfinished.  
-5. Share your fork/PR link with us.
+cd api
 
-> ✅ We want to see how you think, structure, and ****. Small, meaningful commits > one giant commit.
+dotnet restore
 
----
+dotnet run
 
-## 🧠 Business Rules
+### ▶ Frontend (React App)
 
-At **Avalpha Technologies**:
-- **Local Sales Commission:** **20%**
-- **Foreign Sales Commission:** **35%**
+1 Navigate to the UI folder:
 
-Competitors pay:
-- **Local:** **2%**
-- **Foreign:** **7.55%**
+cd ui
 
-**Inputs:**
-- `localSalesCount` (number)  
-- `foreignSalesCount` (number)  
-- `averageSaleAmount` (currency/number)  
+npm install
 
-**Output (example):**
-
-Local Sales count: 10
-Foreign Sales count: 10
-Average Sales Amount: £100
-
-Avalpha Commission:
-
-Local = 20% * 10 * 100 = £200
-
-Foreign = 35% * 10 * 100 = £350
-
-Total = £550
-
-Competitor Commission:
-
-Local = 2% * 10 * 100 = £20
-
-Foreign = 7.55% * 10 * 100 = £75.5
-
-Total = £95.5
-
-## 🧩 Your Tasks (Checklist)
-
-- [ ] Wire up the **React frontend** to call the backend API  
-- [ ] Implement calculation logic 
-- [ ] Validate inputs (numbers ≥ 0, sensible upper bounds)  
-- [ ] Return a typed, well-structured response (DTO)  
-- [ ] Display results in the UI with clear labels and currency formatting  
-- [ ] Handle errors gracefully (backend & UI)  
-- [ ] Provide basic **docs**: how to run, how to test, decisions  
-- [ ] Keep commits small and messages clear  
+npm start
 
 ---
 
-## 🧱 Tech Stack
+## 🧪 How to Test
+Option 1 — Using Swagger
 
-- **Frontend:** React (Vite/CRA), TypeScript preferred (if scaffolded), Fetch/Axios OK  
-- **Backend:** .NET (C#), minimal API or MVC controller  
-- **Tests:** xUnit/NUnit + React Testing Library / Vitest/Jest  
+Open Swagger:
+
+http://localhost:5111/swagger
+
+Execute:
+
+POST /Commision
+
+Sample Request:
+
+{
+  "localSalesCount": 10,
+  "foreignSalesCount": 10,
+  "averageSaleAmount": 100
+}
+
+Expected Response:
+
+{
+  "avalphaTechnologiesCommissionAmount": 550,
+  "competitorCommissionAmount": 95.5
+}
+
+Option 2 — Using Frontend
+
+Enter values in the form.
+
+Click Calculate Commission.
+
+Results will display in the UI.
+
+If invalid input is provided, a meaningful error message will be shown.
+---
+
+## ⚙️ Key Design Decisions
+1️⃣ Service Layer Abstraction
+
+Business logic was moved to a dedicated CommissionService and exposed through ICommissionService to:
+
+Follow SOLID principles
+
+Improve testability
+
+Keep controllers lightweight
+
+2️⃣ DTO Models
+
+Separate request and response DTOs were created to:
+
+Maintain clear API contracts
+
+Avoid exposing internal logic
+
+Support future extensibility
+
+3️⃣ Centralized Validation
+
+Validation logic was extracted into a CommissionValidator class to:
+
+Enforce clean separation of concerns
+
+Keep controller focused only on orchestration
+
+Enable easier maintenance
+
+4️⃣ Frontend Structure
+
+Frontend was structured using:
+
+Models (DTO mapping)
+
+Service layer (API communication)
+
+Utility for error handling
+
+Clean React component
+
+This improves maintainability and separation of responsibilities.
+
+5️⃣ Error Handling
+Backend returns proper HTTP status codes.
+
+Frontend displays meaningful error messages.
+
+
+
+## 🧪 Suggested Test Cases
+
+If expanded further, the following test scenarios would be covered:
+
+✅ Valid Input
+
+Local: 10
+
+Foreign: 10
+
+Average: 100
+
+Expected Avalpha: 550
+
+Expected Competitor: 95.5
+
+✅ Zero Values
+
+Local: 0
+
+Foreign: 0
+
+Average: 100
+
+Expected result: 0
+
+❌ Negative Input
+
+Any negative value
+
+Expected: 400 Bad Request
+
+❌ Extremely Large Input
+
+Sales count > 1,000,000
+
+Expected: Validation error
